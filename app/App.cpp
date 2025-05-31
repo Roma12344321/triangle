@@ -83,6 +83,6 @@ void App::run() const {
 }
 
 App::~App() {
-    glfwTerminate();
     delete resourceManager;
+    glfwTerminate();
 }
