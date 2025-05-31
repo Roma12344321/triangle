@@ -6,4 +6,4 @@ cd ..
 
 cmake --build build
 
-.\build\app.exe
+.\build\bin\first.exe
