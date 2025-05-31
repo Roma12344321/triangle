@@ -3,7 +3,7 @@
 #include <array>
 #include <iostream>
 
-#include "triangle/Triangle.h"
+#include "Triangle.h"
 
 using namespace std;
 
@@ -60,6 +60,12 @@ const array<GLfloat, 9> points = {
 
 void App::run() const {
     const auto triangle = new Triangle(points);
+    if (!triangle->isCompiled()) {
+        cerr << "Failed to compile Triangle\n";
+        delete triangle;
+
+        return;
+    }
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);

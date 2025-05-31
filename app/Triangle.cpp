@@ -1,5 +1,9 @@
 #include "Triangle.h"
 
+#include <iostream>
+#include <string>
+
+using namespace std;
 
 namespace triangle {
     const char *vertexShader = R"glsl(
@@ -27,24 +31,18 @@ namespace triangle {
 Triangle::Triangle(const array<GLfloat, 9> &pts) {
     points = pts;
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &triangle::vertexShader, nullptr);
-    glCompileShader(vs);
+    string vertexShader(triangle::vertexShader);
+    string fragmentShader(triangle::fragmentShader);
 
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &triangle::fragmentShader, nullptr);
-    glCompileShader(fs);
+    ShaderProgram* program = new ShaderProgram(vertexShader, fragmentShader);
+    if (!program->isCompiled()) {
+        cerr << "Error create program" << endl;
+        compiled = false;
 
-    auto shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vs);
-    glAttachShader(shaderProgram, fs);
+        return;
+    }
 
-    glLinkProgram(shaderProgram);
-
-    this->shaderProgram = shaderProgram;
-
-    glDeleteShader(vs);
-    glDeleteShader(fs);
+    this->shaderProgram = program;
 
     GLuint pointsVbo = 0;
     glGenBuffers(1, &pointsVbo);
@@ -74,7 +72,11 @@ Triangle::Triangle(const array<GLfloat, 9> &pts) {
 }
 
 void Triangle::draw() const {
-    glUseProgram(shaderProgram);
+    shaderProgram->use();
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+Triangle::~Triangle() {
+    delete shaderProgram;
 }
