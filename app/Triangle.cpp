@@ -5,42 +5,8 @@
 
 using namespace std;
 
-namespace triangle {
-    const char *vertexShader = R"glsl(
-    #version 330 core
-    layout(location = 0) in vec3 vertex_position;
-    layout(location = 1) in vec3 vertex_color;
-    out vec3 color;
-    void main() {
-        color = vertex_color;
-        gl_Position = vec4(vertex_position, 1.0);
-    }
-)glsl";
-
-    const char *fragmentShader = R"glsl(
-    #version 330
-    in vec3 color;
-    out vec4 frag_color;
-    void main() {
-       frag_color = vec4(color, 1.0);
-    }
-)glsl";
-}
-
-
-Triangle::Triangle(const array<GLfloat, 9> &pts) {
+Triangle::Triangle(const array<GLfloat, 9> &pts,ShaderProgram* program) {
     points = pts;
-
-    string vertexShader(triangle::vertexShader);
-    string fragmentShader(triangle::fragmentShader);
-
-    ShaderProgram* program = new ShaderProgram(vertexShader, fragmentShader);
-    if (!program->isCompiled()) {
-        cerr << "Error create program" << endl;
-        compiled = false;
-
-        return;
-    }
 
     this->shaderProgram = program;
 
@@ -75,8 +41,4 @@ void Triangle::draw() const {
     shaderProgram->use();
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-}
-
-Triangle::~Triangle() {
-    delete shaderProgram;
 }

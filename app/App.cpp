@@ -20,10 +20,13 @@ void keyCallbacks(GLFWwindow *window, int key, int scancode, int action, int mod
 }
 
 
-App::App() {}
+App::App() {
+}
 
 
-int App::initialize() {
+int App::initialize(const char *executablePath) {
+    resourceManager = new ResourceManager(executablePath);
+
     if (!glfwInit()) {
         cerr << "Failed to initialize GLFW\n";
         return -1;
@@ -59,13 +62,13 @@ const array<GLfloat, 9> points = {
 };
 
 void App::run() const {
-    const auto triangle = new Triangle(points);
-    if (!triangle->isCompiled()) {
-        cerr << "Failed to compile Triangle\n";
-        delete triangle;
-
-        return;
+    auto shaderProgram = resourceManager->loadShaders("DefaultShader", "res/shaders/vertex.glsl",
+                                                      "res/shaders/fragment.glsl");
+    if (!shaderProgram) {
+        cerr << "Cant create shader program: " << "DefaultShader" << endl;
     }
+
+    const auto triangle = new Triangle(points, shaderProgram);
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
@@ -79,6 +82,7 @@ void App::run() const {
     delete triangle;
 }
 
-void App::terminate() {
+App::~App() {
     glfwTerminate();
+    delete resourceManager;
 }

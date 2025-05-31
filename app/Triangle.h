@@ -21,18 +21,13 @@ class Triangle {
     ShaderProgram* shaderProgram;
 
     GLuint vao;
-    bool compiled = true;
 
 public:
-    explicit Triangle(const array<GLfloat, 9> &pts);
+    explicit Triangle(const array<GLfloat, 9> &pts,ShaderProgram* program);
+
+    Triangle() = default;
 
     void draw() const;
-
-    ~Triangle();
-
-    bool isCompiled() const {
-        return compiled;
-    }
 };
 
 

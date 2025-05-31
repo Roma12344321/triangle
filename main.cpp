@@ -1,23 +1,16 @@
 #include "app/App.h"
 
-#define begin {;
-#define end };
 
-
-int main()
-begin
+int main(int _, char *argv[]) {
     App *app = new App();
 
-    if (app->initialize() != 0)
-    begin
+    if (app->initialize(argv[0]) != 0) {
         return -1;
-    end
+    }
 
     app->run();
-
-    App::terminate();
 
     delete app;
 
     return 0;
-end
+}

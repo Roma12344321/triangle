@@ -2,18 +2,21 @@
 #define APP_H
 #include "../glad/gl.h"
 #include "../GLFW/glfw3.h"
+#include "resources/ResourceManager.h"
 
 
 class App {
 public:
     App();
-    int initialize();
+    int initialize(const char* executablePath);
 
-    static void terminate();
     void run() const;
+
+    ~App();
 
 private:
     GLFWwindow* window;
+    ResourceManager* resourceManager;
 };
 
 #endif
