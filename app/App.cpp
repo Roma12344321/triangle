@@ -3,6 +3,8 @@
 #include <array>
 #include <iostream>
 
+#include "triangle/Triangle.h"
+
 using namespace std;
 
 
@@ -15,28 +17,6 @@ void escapeCallback(GLFWwindow *window, int key, int scancode, int action, int m
 
 void keyCallbacks(GLFWwindow *window, int key, int scancode, int action, int mods) {
     escapeCallback(window, key, scancode, action, mods);
-}
-
-namespace triangle {
-    const char *vertexShader = R"glsl(
-    #version 330 core
-    layout(location = 0) in vec3 vertex_position;
-    layout(location = 1) in vec3 vertex_color;
-    out vec3 color;
-    void main() {
-        color = vertex_color;
-        gl_Position = vec4(vertex_position, 1.0);
-    }
-)glsl";
-
-    const char *fragmentShader = R"glsl(
-    #version 330
-    in vec3 color;
-    out vec4 frag_color;
-    void main() {
-       frag_color = vec4(color, 1.0);
-    }
-)glsl";
 }
 
 
