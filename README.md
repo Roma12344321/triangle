@@ -1,9 +1,3 @@
-First run:
+RUN:
 
-mkdir build
-
- ./run.bat
-
- Next run:
-
- ./run.bat  
+./run.bat
