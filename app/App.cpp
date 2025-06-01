@@ -56,20 +56,53 @@ int App::initialize(const char *executablePath) {
     return 0;
 }
 
-const array<GLfloat, 9> points = {
-    0.0f, 0.5f, 0,
-    0.5f, -0.5f, 0,
-    -0.5f, -0.5f, 0
-};
-
 struct Scene {
-    vector<Triangle*>* triangles;
+    vector<Triangle *> *triangles;
     ShaderProgram *shaderProgram;
+    Texture2D *texture;
 
 
-    Scene(vector<Triangle *> *vector, ShaderProgram *shaderProgram) : triangles(vector), shaderProgram(shaderProgram) {
+    Scene(vector<Triangle *> *vector, ShaderProgram *shaderProgram, Texture2D *texture) : triangles(vector),
+        shaderProgram(shaderProgram), texture(texture) {
     }
 };
+
+void triangleCallback(GLFWwindow *w, int key, int scancode, int action, int mods) {
+    auto scene = static_cast<Scene *>(glfwGetWindowUserPointer(w));
+    if (!scene || action != GLFW_PRESS || !scene->triangles || !
+        scene->shaderProgram || !scene->texture) {
+        return;
+    }
+
+    switch (key) {
+        case GLFW_KEY_A:
+            if (!scene->triangles->empty()) {
+                scene->triangles->back()->moveLeft();
+            }
+            break;
+        case GLFW_KEY_D:
+            if (!scene->triangles->empty()) {
+                scene->triangles->back()->moveRight();
+            }
+            break;
+        case GLFW_KEY_W:
+            scene->triangles->push_back(new Triangle(scene->shaderProgram, scene->texture));
+            break;
+        case GLFW_KEY_S: {
+            if (scene->triangles->empty()) {
+                break;
+            }
+            auto lastTr = scene->triangles->back();
+            if (lastTr != nullptr) {
+                scene->triangles->pop_back();
+                delete lastTr;
+            }
+            break;
+        }
+        default:
+            glfwSetWindowShouldClose(w, GLFW_TRUE);
+    }
+}
 
 void App::run() const {
     auto shaderProgram = resourceManager->loadShaders("DefaultShader", "res/shaders/vertex.glsl",
@@ -78,53 +111,17 @@ void App::run() const {
         cerr << "Cant create shader program: " << "DefaultShader" << endl;
     }
 
+    auto texture = resourceManager->loadTexture("DefaultTexture", "res/textures/background.png");
+
     auto triangles = new vector<Triangle *>();
-    const auto triangle = new Triangle(points, shaderProgram);
 
-    triangles->push_back(triangle);
+    triangles->push_back(new Triangle(shaderProgram, texture));
 
-    auto scene = new Scene(triangles, shaderProgram);
+    auto scene = new Scene(triangles, shaderProgram, texture);
 
     glfwSetWindowUserPointer(window, scene);
 
-    glfwSetKeyCallback(window,
-                       [](GLFWwindow *w, int key, int scancode, int action, int mods) {
-                           auto scene = static_cast<Scene *>(glfwGetWindowUserPointer(w));
-                           if (!scene || action != GLFW_PRESS || !scene->triangles || !
-                               scene->shaderProgram) {
-                               return;
-                           }
-
-                           switch (key) {
-                               case GLFW_KEY_A:
-                                   if (!scene->triangles->empty()) {
-                                       scene->triangles->back()->moveLeft();
-                                   }
-                                   break;
-                               case GLFW_KEY_D:
-                                   if (!scene->triangles->empty()) {
-                                       scene->triangles->back()->moveRight();
-                                   }
-                                   break;
-                               case GLFW_KEY_W:
-                                   scene->triangles->push_back(new Triangle(points, scene->shaderProgram));
-                                   break;
-                               case GLFW_KEY_S: {
-                                   if (scene->triangles->empty()) {
-                                       break;
-                                   }
-                                   auto lastTr = scene->triangles->back();
-                                   if (lastTr != nullptr) {
-                                       scene->triangles->pop_back();
-                                       delete lastTr;
-                                   }
-                                   break;
-                               }
-                               default:
-                                   glfwSetWindowShouldClose(w, GLFW_TRUE);
-                           }
-                       }
-    );
+    glfwSetKeyCallback(window, triangleCallback);
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);

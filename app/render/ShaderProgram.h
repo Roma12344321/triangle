@@ -27,12 +27,15 @@ public:
 
     void use() const;
 
+    void setInt(const string &name, const GLint value);
+
 private:
     bool compiled = false;
     GLuint id = 0;
 
     bool createShader(const string &source, const GLenum shaderType, GLuint &shaderID);
 };
+
 
 
 #endif

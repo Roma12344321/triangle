@@ -3,18 +3,18 @@
 #include <filesystem>
 #include <iostream>
 
-constexpr int BUFF_SIZE = 1024;
+#define BUFF_SIZE 1024
 
 ShaderProgram::ShaderProgram(const string &vertexShader, const string &fragmentShader) {
     GLuint vertexShaderID = 0;
-    if (!this->createShader(vertexShader, GL_VERTEX_SHADER,vertexShaderID)) {
+    if (!this->createShader(vertexShader, GL_VERTEX_SHADER, vertexShaderID)) {
         cerr << "Error compling vertex shader" << endl;
 
         return;
     }
 
     GLuint fragmentShaderID = 0;
-    if (!this->createShader(fragmentShader, GL_FRAGMENT_SHADER,fragmentShaderID)) {
+    if (!this->createShader(fragmentShader, GL_FRAGMENT_SHADER, fragmentShaderID)) {
         cerr << "Error compling fragment shader" << endl;
         glDeleteShader(vertexShaderID);
 
@@ -54,7 +54,7 @@ ShaderProgram::~ShaderProgram() {
 
 bool ShaderProgram::createShader(const string &source, const GLenum shaderType, GLuint &shaderID) {
     shaderID = glCreateShader(shaderType);
-    const char* code = source.c_str();
+    const char *code = source.c_str();
     glShaderSource(shaderID, 1, &code, nullptr);
 
     glCompileShader(shaderID);
@@ -72,7 +72,7 @@ bool ShaderProgram::createShader(const string &source, const GLenum shaderType, 
     return true;
 }
 
-ShaderProgram & ShaderProgram::operator=(ShaderProgram &&shaderProgram) noexcept {
+ShaderProgram &ShaderProgram::operator=(ShaderProgram &&shaderProgram) noexcept {
     glDeleteProgram(id);
 
     id = shaderProgram.id;
@@ -96,4 +96,8 @@ ShaderProgram::ShaderProgram(ShaderProgram &&shaderProgram) noexcept {
 
 void ShaderProgram::use() const {
     glUseProgram(id);
+}
+
+void ShaderProgram::setInt(const string &name, const GLint value) {
+    glUniform1i(glGetUniformLocation(id, name.c_str()), value);
 }

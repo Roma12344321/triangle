@@ -5,6 +5,7 @@
 #include <string>
 
 #include "../render/ShaderProgram.h"
+#include "../render/Texture2D.h"
 
 using namespace std;
 
@@ -26,12 +27,18 @@ public:
 
     ShaderProgram *getShaderProgram(const string &shaderName);
 
-    void loadTexture(const string &textureName, const string &texturePath) const;
+    Texture2D* loadTexture(const string &textureName, const string &texturePath);
+
+    Texture2D* getTexture(const string &textureName);
+
 
 private:
     string getFileString(const string &filePath) const;
     typedef map<const string,ShaderProgram*> ShaderProgramMap;
     ShaderProgramMap shaderPrograms;
+
+    typedef map<const string,Texture2D*> TexturesMap;
+    TexturesMap textures;
 
     string path;
 };

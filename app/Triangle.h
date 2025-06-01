@@ -4,13 +4,17 @@
 #include <array>
 
 #include "../glad/gl.h"
-#include "../GLFW/glfw3.h"
 #include "render/ShaderProgram.h"
+#include "render/Texture2D.h"
 
 using namespace std;
 
 class Triangle {
-    array<GLfloat, 9> points;
+    array<GLfloat, 9> points = {
+        0.0f, 0.5f, 0,
+        0.5f, -0.5f, 0,
+        -0.5f, -0.5f, 0
+    };
 
     const array<GLfloat, 9> colors = {
         1.0f, 0.0f, 0.0f,
@@ -18,16 +22,24 @@ class Triangle {
         0.0f, 0.0f, 1.0f
     };
 
-    ShaderProgram* shaderProgram;
+    array<GLfloat, 6> textureCoordinates = {
+        0.5f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f
+    };
+
+    ShaderProgram *shaderProgram;
+    Texture2D* texture;
 
     GLuint vao;
     GLuint pointsVbo;
     GLuint colorsVbo;
+    GLuint texturesVbo;
 
     void changeState() const;
 
 public:
-    explicit Triangle(const array<GLfloat, 9> &pts,ShaderProgram* program);
+    explicit Triangle(ShaderProgram *program, Texture2D *texture);
 
     Triangle() = default;
 

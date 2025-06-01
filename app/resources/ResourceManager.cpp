@@ -17,6 +17,10 @@ ResourceManager::~ResourceManager() {
     for (auto program: shaderPrograms) {
         delete program.second;
     }
+
+    for (auto texture: textures) {
+        delete texture.second;
+    }
 }
 
 ShaderProgram *ResourceManager::loadShaders(
@@ -38,9 +42,10 @@ ShaderProgram *ResourceManager::loadShaders(
         return nullptr;
     }
 
-    auto newShader =  shaderPrograms.emplace(shaderName, new ShaderProgram(vertexString, fragmentString)).first->second;
+    auto newShader = shaderPrograms.emplace(shaderName, new ShaderProgram(vertexString, fragmentString)).first->second;
     if (!newShader->isCompiled()) {
-        cerr << "cant load shader program" << endl << "Vertex:" << vertexPath << endl << "Fragment:" << fragmentPath << endl;
+        cerr << "cant load shader program" << endl << "Vertex:" << vertexPath << endl << "Fragment:" << fragmentPath <<
+                endl;
 
         return nullptr;
     }
@@ -59,19 +64,35 @@ ShaderProgram *ResourceManager::getShaderProgram(const string &shaderName) {
     return iterator->second;
 }
 
-void ResourceManager::loadTexture(const string &textureName, const string &texturePath) const {
+Texture2D *ResourceManager::loadTexture(const string &textureName, const string &texturePath) {
     int channels = 0;
     int width = 0;
     int height = 0;
     stbi_set_flip_vertically_on_load(true);
 
-    auto pixels = stbi_load((path+"/"+texturePath).c_str(), &width, &height, &channels, 0);
+    auto pixels = stbi_load((path + "/" + texturePath).c_str(), &width, &height, &channels, 0);
     if (!pixels) {
         cerr << "Cant't load image " << textureName << endl;
-        return;
+        return nullptr;
     }
 
+    auto newTexture = textures.emplace(textureName,
+                                       new Texture2D(width, height, pixels, channels,GL_NEAREST,GL_CLAMP_TO_EDGE)).first
+            ->second;
+
     stbi_image_free(pixels);
+
+    return newTexture;
+}
+
+Texture2D *ResourceManager::getTexture(const string &textureName) {
+    auto iterator = textures.find(textureName);
+    if (iterator == textures.end()) {
+        cerr << "No texture " << textureName << " found" << endl;
+        return nullptr;
+    }
+
+    return iterator->second;
 }
 
 string ResourceManager::getFileString(const string &filePath) const {
