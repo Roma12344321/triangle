@@ -26,6 +26,8 @@ public:
 
     ShaderProgram *getShaderProgram(const string &shaderName);
 
+    void loadTexture(const string &textureName, const string &texturePath) const;
+
 private:
     string getFileString(const string &filePath) const;
     typedef map<const string,ShaderProgram*> ShaderProgramMap;

@@ -5,28 +5,19 @@
 
 using namespace std;
 
-Triangle::Triangle(const array<GLfloat, 9> &pts,ShaderProgram* program) {
-    points = pts;
-
-    this->shaderProgram = program;
-
-    GLuint pointsVbo = 0;
+Triangle::Triangle(const array<GLfloat, 9> &pts, ShaderProgram *program) : points(pts), shaderProgram(program) {
     glGenBuffers(1, &pointsVbo);
     glBindBuffer(GL_ARRAY_BUFFER, pointsVbo);
 
-    glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(GLfloat), points.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(GLfloat), points.data(), GL_DYNAMIC_DRAW);
 
-    GLuint colorsVbo = 0;
     glGenBuffers(1, &colorsVbo);
     glBindBuffer(GL_ARRAY_BUFFER, colorsVbo);
 
     glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(GLfloat), colors.data(), GL_STATIC_DRAW);
 
-    GLuint vao = 0;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
-
-    this->vao = vao;
 
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, pointsVbo);
@@ -35,6 +26,39 @@ Triangle::Triangle(const array<GLfloat, 9> &pts,ShaderProgram* program) {
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, colorsVbo);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 0, nullptr);
+}
+
+void Triangle::changeState() const {
+    glBindBuffer(GL_ARRAY_BUFFER, pointsVbo);
+    glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(GLfloat), points.data(), GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(vao);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, pointsVbo);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+}
+
+void Triangle::moveLeft() {
+    points[0] -= 0.1f;
+    points[3] -= 0.1f;
+    points[6] -= 0.1f;
+
+    changeState();
+}
+
+void Triangle::moveRight() {
+    points[0] += 0.1f;
+    points[3] += 0.1f;
+    points[6] += 0.1f;
+
+    changeState();
+}
+
+Triangle::~Triangle() {
+    glDeleteBuffers(1, &pointsVbo);
+    glDeleteBuffers(1, &colorsVbo);
+
+    glDeleteVertexArrays(1, &vao);
 }
 
 void Triangle::draw() const {

@@ -21,13 +21,23 @@ class Triangle {
     ShaderProgram* shaderProgram;
 
     GLuint vao;
+    GLuint pointsVbo;
+    GLuint colorsVbo;
+
+    void changeState() const;
 
 public:
     explicit Triangle(const array<GLfloat, 9> &pts,ShaderProgram* program);
 
     Triangle() = default;
 
+    ~Triangle();
+
     void draw() const;
+
+    void moveLeft();
+
+    void moveRight();
 };
 
 
