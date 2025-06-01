@@ -1,29 +1,19 @@
 #include "App.h"
 
-#include <array>
 #include <iostream>
 #include <vector>
 
 #include "Triangle.h"
+#include "../glm/vec2.hpp"
+
 
 using namespace std;
 
 
-void escapeCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        cout << "ESCAPE" << endl;
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
+App::App(): window(nullptr), resourceManager(nullptr) {
 }
 
-void keyCallbacks(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    escapeCallback(window, key, scancode, action, mods);
-}
-
-
-App::App() {
-}
-
+inline constexpr glm::vec2 windowSize(1920, 1080);
 
 int App::initialize(const char *executablePath) {
     resourceManager = new ResourceManager(executablePath);
@@ -37,7 +27,7 @@ int App::initialize(const char *executablePath) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(1920, 1080, "Rotating Triangle", nullptr, nullptr);
+    window = glfwCreateWindow(windowSize.x, windowSize.y, "Rotating Triangle", nullptr, nullptr);
     if (!window) {
         cerr << "Failed to create GLFW window\n";
         glfwTerminate();
@@ -50,8 +40,6 @@ int App::initialize(const char *executablePath) {
         cerr << "Failed to initialize GLAD\n";
         return -1;
     }
-
-    glfwSetKeyCallback(window, keyCallbacks);
 
     return 0;
 }
@@ -112,6 +100,9 @@ void App::run() const {
     }
 
     auto texture = resourceManager->loadTexture("DefaultTexture", "res/textures/background.png");
+    if (!texture) {
+        cerr << "Cant create texture: " << "DefaultTexture" << endl;
+    }
 
     auto triangles = new vector<Triangle *>();
 

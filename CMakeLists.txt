@@ -29,8 +29,6 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE
         core
         glfw3dll
-        opengl32
-        gdi32
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
