@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <iostream>
 
+#include "../../glm/gtc/type_ptr.hpp"
+
 #define BUFF_SIZE 1024
 
 ShaderProgram::ShaderProgram(const string &vertexShader, const string &fragmentShader) {
@@ -100,4 +102,8 @@ void ShaderProgram::use() const {
 
 void ShaderProgram::setInt(const string &name, const GLint value) {
     glUniform1i(glGetUniformLocation(id, name.c_str()), value);
+}
+
+void ShaderProgram::setMatrix4(const string &name, const glm::mat4 &matrix) {
+    glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
 }

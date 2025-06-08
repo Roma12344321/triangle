@@ -21,6 +21,10 @@ ResourceManager::~ResourceManager() {
     for (auto texture: textures) {
         delete texture.second;
     }
+
+    for (auto sprite : sprites) {
+        delete sprite.second;
+    }
 }
 
 ShaderProgram *ResourceManager::loadShaders(
@@ -89,6 +93,45 @@ Texture2D *ResourceManager::getTexture(const string &textureName) {
     auto iterator = textures.find(textureName);
     if (iterator == textures.end()) {
         cerr << "No texture " << textureName << " found" << endl;
+        return nullptr;
+    }
+
+    return iterator->second;
+}
+
+Sprite * ResourceManager::loadSprite(
+    const string &spriteName,
+    const string &textureName,
+    const string &shaderName,
+    const unsigned int spriteWidth,
+    const unsigned int spriteHeight) {
+    auto texture = getTexture(textureName);
+    if (!texture) {
+        cerr << "No texture " << textureName << "for sprite" << endl;
+        return nullptr;
+    }
+
+    auto shader = getShaderProgram(shaderName);
+    if (!shader) {
+        cerr << "No shader " << textureName << "for sprite" << endl;
+        return nullptr;
+    }
+
+    auto newSprite = new Sprite(
+        texture,shader,
+        glm::vec2(0.f,0.f),
+        glm::vec2(spriteWidth,spriteHeight),
+        0.f);
+    sprites.emplace(spriteName,newSprite);
+
+
+    return newSprite;
+}
+
+Sprite * ResourceManager::getSprite(const string &spriteName) {
+    auto iterator = sprites.find(spriteName);
+    if (iterator == sprites.end()) {
+        cerr << "No Sprite " << spriteName << " found" << endl;
         return nullptr;
     }
 

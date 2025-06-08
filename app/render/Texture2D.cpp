@@ -37,6 +37,8 @@ Texture2D::Texture2D(
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 
     glGenerateMipmap(GL_TEXTURE_2D);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 Texture2D &Texture2D::operator=(Texture2D &&texture2d) noexcept {

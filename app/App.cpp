@@ -1,10 +1,10 @@
 #include "App.h"
 
 #include <iostream>
-#include <vector>
+#include <thread>
 
-#include "Triangle.h"
 #include "../glm/vec2.hpp"
+#include "../glm/gtc/matrix_transform.hpp"
 
 
 using namespace std;
@@ -13,7 +13,14 @@ using namespace std;
 App::App(): window(nullptr), resourceManager(nullptr) {
 }
 
-inline constexpr glm::vec2 windowSize(1920, 1080);
+glm::vec2 windowSize = glm::vec2(800, 600);
+
+
+void sizeCallback(GLFWwindow *_, int width, int height) {
+    windowSize.x = width;
+    windowSize.y = height;
+    glViewport(0, 0, width, height);
+}
 
 int App::initialize(const char *executablePath) {
     resourceManager = new ResourceManager(executablePath);
@@ -27,12 +34,14 @@ int App::initialize(const char *executablePath) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(windowSize.x, windowSize.y, "Rotating Triangle", nullptr, nullptr);
+    window = glfwCreateWindow(windowSize.x, windowSize.y, "App", nullptr, nullptr);
     if (!window) {
         cerr << "Failed to create GLFW window\n";
         glfwTerminate();
         return -1;
     }
+
+    glfwSetWindowSizeCallback(window, sizeCallback);
 
     glfwMakeContextCurrent(window);
 
@@ -44,94 +53,48 @@ int App::initialize(const char *executablePath) {
     return 0;
 }
 
-struct Scene {
-    vector<Triangle *> *triangles;
-    ShaderProgram *shaderProgram;
-    Texture2D *texture;
+void App::run() const {
+    auto spriteShaderProgram = resourceManager->loadShaders("SpriteShader", "res/shaders/vSprite.glsl",
+                                                      "res/shaders/fSprite.glsl");
+    if (!spriteShaderProgram) {
+        cerr << "Cant create shader program: " << "SpriteShader" << endl;
 
-
-    Scene(vector<Triangle *> *vector, ShaderProgram *shaderProgram, Texture2D *texture) : triangles(vector),
-        shaderProgram(shaderProgram), texture(texture) {
-    }
-};
-
-void triangleCallback(GLFWwindow *w, int key, int scancode, int action, int mods) {
-    auto scene = static_cast<Scene *>(glfwGetWindowUserPointer(w));
-    if (!scene || action != GLFW_PRESS || !scene->triangles || !
-        scene->shaderProgram || !scene->texture) {
         return;
     }
 
-    switch (key) {
-        case GLFW_KEY_A:
-            if (!scene->triangles->empty()) {
-                scene->triangles->back()->moveLeft();
-            }
-            break;
-        case GLFW_KEY_D:
-            if (!scene->triangles->empty()) {
-                scene->triangles->back()->moveRight();
-            }
-            break;
-        case GLFW_KEY_W:
-            scene->triangles->push_back(new Triangle(scene->shaderProgram, scene->texture));
-            break;
-        case GLFW_KEY_S: {
-            if (scene->triangles->empty()) {
-                break;
-            }
-            auto lastTr = scene->triangles->back();
-            if (lastTr != nullptr) {
-                scene->triangles->pop_back();
-                delete lastTr;
-            }
-            break;
-        }
-        default:
-            glfwSetWindowShouldClose(w, GLFW_TRUE);
-    }
-}
-
-void App::run() const {
-    auto shaderProgram = resourceManager->loadShaders("DefaultShader", "res/shaders/vertex.glsl",
-                                                      "res/shaders/fragment.glsl");
-    if (!shaderProgram) {
-        cerr << "Cant create shader program: " << "DefaultShader" << endl;
-    }
-
-    auto texture = resourceManager->loadTexture("DefaultTexture", "res/textures/background.png");
+    auto texture = resourceManager->loadTexture("DefaultTexture", "res/textures/character.png");
     if (!texture) {
         cerr << "Cant create texture: " << "DefaultTexture" << endl;
+
+        return;
     }
 
-    auto triangles = new vector<Triangle *>();
+    auto sprite = resourceManager -> loadSprite("DefaultSprite","DefaultTexture","SpriteShader",150,300);
+    if (!sprite) {
+        cerr << "Cant create sprite: " << "DefaultSprite" << endl;
 
-    triangles->push_back(new Triangle(shaderProgram, texture));
+        return;
+    }
 
-    auto scene = new Scene(triangles, shaderProgram, texture);
+    sprite -> setPosition(glm::vec2(200,100));
 
-    glfwSetWindowUserPointer(window, scene);
+    glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(windowSize.x), 0.f,
+                                           static_cast<float>(windowSize.y), -100.f, 100.f);
 
-    glfwSetKeyCallback(window, triangleCallback);
+    spriteShaderProgram->use();
+    spriteShaderProgram->setMatrix4("projectionMat", projectionMatrix);
+    spriteShaderProgram->setInt("tex", 0);
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-        for (auto tr: *triangles) {
-            tr->draw();
-        }
+        sprite -> render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    for (auto tr: *triangles) {
-        delete tr;
-    }
-
-    delete triangles;
-
-    delete scene;
 }
 
 App::~App() {
