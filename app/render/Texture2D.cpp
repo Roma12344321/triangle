@@ -64,6 +64,22 @@ Texture2D::~Texture2D() {
     glDeleteTextures(1, &id);
 }
 
+void Texture2D::addSubTexture(const std::string &name, const glm::vec2 &leftBottomUV, const glm::vec2 &rightTopUV) {
+    subTextures.emplace(name, SubTexture2D(leftBottomUV, rightTopUV));
+}
+
+const static Texture2D::SubTexture2D defaultSubTexture = Texture2D::SubTexture2D();
+
+const Texture2D::SubTexture2D &Texture2D::getSubTexture(const std::string &name) const {
+    auto it = subTextures.find(name);
+
+    if (it == subTextures.end()) {
+        return defaultSubTexture;
+    }
+
+    return it->second;
+}
+
 void Texture2D::bind() const {
     glBindTexture(GL_TEXTURE_2D, id);
 }

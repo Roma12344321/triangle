@@ -3,6 +3,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 #include "../render/ShaderProgram.h"
 #include "../render/Sprite.h"
@@ -37,9 +38,17 @@ public:
                        const string &textureName,
                        const string &shaderName,
                        const unsigned int spriteWidth,
-                       const unsigned int spriteHeight);
+                       const unsigned int spriteHeight,
+                       const string &subTextureName);
 
     Sprite *getSprite(const string &spriteName);
+
+    Texture2D *loadTextureAtlas(
+        const string &textureName,
+        const string &texturePath,
+        vector<string> subTextures,
+        const unsigned int subTextureWidth,
+        const unsigned int subTextureHeight);
 
 private:
     string getFileString(const string &filePath) const;

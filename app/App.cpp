@@ -13,7 +13,7 @@ using namespace std;
 App::App(): window(nullptr), resourceManager(nullptr) {
 }
 
-glm::vec2 windowSize = glm::vec2(800, 600);
+glm::vec2 windowSize = glm::vec2(1920, 1080);
 
 
 void sizeCallback(GLFWwindow *_, int width, int height) {
@@ -55,31 +55,38 @@ int App::initialize(const char *executablePath) {
 
 void App::run() const {
     auto spriteShaderProgram = resourceManager->loadShaders("SpriteShader", "res/shaders/vSprite.glsl",
-                                                      "res/shaders/fSprite.glsl");
+                                                            "res/shaders/fSprite.glsl");
     if (!spriteShaderProgram) {
         cerr << "Cant create shader program: " << "SpriteShader" << endl;
 
         return;
     }
 
-    auto texture = resourceManager->loadTexture("DefaultTexture", "res/textures/character.png");
-    if (!texture) {
-        cerr << "Cant create texture: " << "DefaultTexture" << endl;
+    vector<string> subTextureNames = {"topLeft","topCenter","topRight","centerLeft","centerCenter","centerRight","bottomLeft","bottomCenter","bottomRight"};
+
+    auto textureAtlas = resourceManager -> loadTextureAtlas("DefaultTextureAtlas","res/textures/character.png",subTextureNames,130,130);
+
+    if (!textureAtlas) {
+        cerr << "Cant create texture atlas: " << "DefaultTextureAtlas" << endl;
 
         return;
     }
 
-    auto sprite = resourceManager -> loadSprite("DefaultSprite","DefaultTexture","SpriteShader",150,300);
+    auto sprite = resourceManager->loadSprite("DefaultSprite", "DefaultTextureAtlas", "SpriteShader", windowSize.x/8, windowSize.y/4,"topRight");
     if (!sprite) {
         cerr << "Cant create sprite: " << "DefaultSprite" << endl;
 
         return;
     }
 
-    sprite -> setPosition(glm::vec2(200,100));
+    glm::vec2 screenCenter = windowSize * 0.5f;
+    glm::vec2 halfSprite  = glm::vec2(windowSize.x/8, windowSize.y/4) * 0.5f;
 
-    glm::mat4 projectionMatrix = glm::ortho(0.f, static_cast<float>(windowSize.x), 0.f,
-                                           static_cast<float>(windowSize.y), -100.f, 100.f);
+    glm::vec2 pos = screenCenter - halfSprite;
+    sprite->setPosition(pos);
+
+    glm::mat4 projectionMatrix = glm::ortho(0.f, windowSize.x, 0.f,
+                                            windowSize.y, -100.f, 100.f);
 
     spriteShaderProgram->use();
     spriteShaderProgram->setMatrix4("projectionMat", projectionMatrix);
@@ -89,12 +96,11 @@ void App::run() const {
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-        sprite -> render();
+        sprite->render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
 }
 
 App::~App() {

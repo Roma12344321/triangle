@@ -3,9 +3,14 @@
 #include "../../glm/ext/matrix_transform.hpp"
 
 
-Sprite::Sprite(const Texture2D *texture, ShaderProgram *shaderProgram, const glm::vec2 &position,
-               const glm::vec2 &size, const float rotation) : texture(texture), shaderProgram(shaderProgram),
-                                                              position(position), size(size), rotation(rotation) {
+Sprite::Sprite(
+    const Texture2D *texture,
+    const std::string initialSubTexture,
+    ShaderProgram *shaderProgram,
+    const glm::vec2 &position,
+    const glm::vec2 &size,
+    const float rotation) : texture(texture), shaderProgram(shaderProgram),
+                            position(position), size(size), rotation(rotation) {
     const GLfloat vertexCoords[] = {
         0.0f, 0.0f,
         0.0f, 1.0f,
@@ -16,14 +21,16 @@ Sprite::Sprite(const Texture2D *texture, ShaderProgram *shaderProgram, const glm
         0.0f, 0.0f,
     };
 
-    const GLfloat textCoords[] = {
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 1.0f,
+    auto subTexture = texture->getSubTexture(initialSubTexture);
 
-        1.0f, 1.0f,
-        1.0f, 0.0f,
-        0.0f, 0.0f,
+    const GLfloat textCoords[] = {
+        subTexture.leftBottomUV.x, subTexture.leftBottomUV.y,
+        subTexture.leftBottomUV.x, subTexture.rightTopUV.y,
+        subTexture.rightTopUV.x, subTexture.rightTopUV.y,
+
+        subTexture.rightTopUV.x, subTexture.rightTopUV.y,
+        subTexture.rightTopUV.x, subTexture.leftBottomUV.y,
+        subTexture.leftBottomUV.x, subTexture.leftBottomUV.y,
     };
 
     glGenVertexArrays(1, &vao);

@@ -8,6 +8,7 @@ class Sprite {
 public:
     Sprite(
         const Texture2D *texture,
+        const std::string initialSubTexture,
         ShaderProgram *shaderProgram,
         const glm::vec2 &position = glm::vec2(0.0f),
         const glm::vec2 &size = glm::vec2(1.0f),

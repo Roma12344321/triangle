@@ -6,6 +6,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG
+
 #include "stb_image.h"
 
 ResourceManager::ResourceManager(const string &executablePath) {
@@ -22,7 +23,7 @@ ResourceManager::~ResourceManager() {
         delete texture.second;
     }
 
-    for (auto sprite : sprites) {
+    for (auto sprite: sprites) {
         delete sprite.second;
     }
 }
@@ -99,12 +100,13 @@ Texture2D *ResourceManager::getTexture(const string &textureName) {
     return iterator->second;
 }
 
-Sprite * ResourceManager::loadSprite(
+Sprite *ResourceManager::loadSprite(
     const string &spriteName,
     const string &textureName,
     const string &shaderName,
     const unsigned int spriteWidth,
-    const unsigned int spriteHeight) {
+    const unsigned int spriteHeight,
+    const string& subTextureName) {
     auto texture = getTexture(textureName);
     if (!texture) {
         cerr << "No texture " << textureName << "for sprite" << endl;
@@ -118,17 +120,18 @@ Sprite * ResourceManager::loadSprite(
     }
 
     auto newSprite = new Sprite(
-        texture,shader,
-        glm::vec2(0.f,0.f),
-        glm::vec2(spriteWidth,spriteHeight),
+        texture,subTextureName,
+        shader,
+        glm::vec2(0.f, 0.f),
+        glm::vec2(spriteWidth, spriteHeight),
         0.f);
-    sprites.emplace(spriteName,newSprite);
+    sprites.emplace(spriteName, newSprite);
 
 
     return newSprite;
 }
 
-Sprite * ResourceManager::getSprite(const string &spriteName) {
+Sprite *ResourceManager::getSprite(const string &spriteName) {
     auto iterator = sprites.find(spriteName);
     if (iterator == sprites.end()) {
         cerr << "No Sprite " << spriteName << " found" << endl;
@@ -136,6 +139,41 @@ Sprite * ResourceManager::getSprite(const string &spriteName) {
     }
 
     return iterator->second;
+}
+
+Texture2D *ResourceManager::loadTextureAtlas(
+    const string &textureName,
+    const string &texturePath,
+    vector<string> subTextures,
+    const unsigned int subTextureWidth,
+    const unsigned int subTextureHeight
+) {
+    auto texture = loadTexture(textureName,texturePath);
+    if (!texture) {
+        return texture;
+    }
+
+    const unsigned int textureWidth = texture->getWidth();
+    const unsigned int textureHeight = texture->getHeight();
+
+    unsigned int currentTextureOffsetX = 0;
+    unsigned int currentTextureOffsetY = textureHeight;
+
+    for (auto subTextureName: subTextures) {
+        glm::vec2 leftBottomUV(static_cast<float>(currentTextureOffsetX) / textureWidth,static_cast<float>(currentTextureOffsetY-subTextureHeight) / textureHeight);
+        glm::vec2 rightTopUV(static_cast<float>(currentTextureOffsetX+subTextureWidth) / textureWidth,static_cast<float>(currentTextureOffsetY) / textureHeight);
+        texture -> addSubTexture(subTextureName, leftBottomUV, rightTopUV);
+
+
+        currentTextureOffsetX += subTextureWidth;
+        if (currentTextureOffsetX >= textureWidth) {
+            currentTextureOffsetX = 0;
+            currentTextureOffsetY -= subTextureHeight;
+        }
+    }
+
+    return texture;
+
 }
 
 string ResourceManager::getFileString(const string &filePath) const {
