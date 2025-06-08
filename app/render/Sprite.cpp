@@ -5,7 +5,7 @@
 
 Sprite::Sprite(
     const Texture2D *texture,
-    const std::string initialSubTexture,
+    const std::string &initialSubTexture,
     ShaderProgram *shaderProgram,
     const glm::vec2 &position,
     const glm::vec2 &size,
@@ -21,7 +21,7 @@ Sprite::Sprite(
         0.0f, 0.0f,
     };
 
-    auto subTexture = texture->getSubTexture(initialSubTexture);
+    auto subTexture = this->texture->getSubTexture(initialSubTexture);
 
     const GLfloat textCoords[] = {
         subTexture.leftBottomUV.x, subTexture.leftBottomUV.y,

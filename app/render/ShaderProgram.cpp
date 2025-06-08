@@ -7,6 +7,8 @@
 
 #define BUFF_SIZE 1024
 
+using namespace std;
+
 ShaderProgram::ShaderProgram(const string &vertexShader, const string &fragmentShader) {
     GLuint vertexShaderID = 0;
     if (!this->createShader(vertexShader, GL_VERTEX_SHADER, vertexShaderID)) {

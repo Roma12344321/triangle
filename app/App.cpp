@@ -62,9 +62,20 @@ void App::run() const {
         return;
     }
 
-    vector<string> subTextureNames = {"topLeft","topCenter","topRight","centerLeft","centerCenter","centerRight","bottomLeft","bottomCenter","bottomRight"};
+    vector<string> subTextureNames = {
+        "topLeft",
+        "topCenter",
+        "topRight",
+        "centerLeft",
+        "centerCenter",
+        "centerRight",
+        "bottomLeft",
+        "bottomCenter",
+        "bottomRight"
+    };
 
-    auto textureAtlas = resourceManager -> loadTextureAtlas("DefaultTextureAtlas","res/textures/character.png",subTextureNames,130,130);
+    auto textureAtlas = resourceManager->loadTextureAtlas("DefaultTextureAtlas", "res/textures/character.png",
+                                                          subTextureNames, 384 / 3, 384 / 3);
 
     if (!textureAtlas) {
         cerr << "Cant create texture atlas: " << "DefaultTextureAtlas" << endl;
@@ -72,31 +83,49 @@ void App::run() const {
         return;
     }
 
-    auto sprite = resourceManager->loadSprite("DefaultSprite", "DefaultTextureAtlas", "SpriteShader", windowSize.x/8, windowSize.y/4,"topRight");
-    if (!sprite) {
-        cerr << "Cant create sprite: " << "DefaultSprite" << endl;
 
+    auto animatedSprite = resourceManager->loadAnimatedSprite("DefaultAnimatedSprite", "DefaultTextureAtlas",
+                                                              "SpriteShader", windowSize.x / 8, windowSize.y / 4,
+                                                              "topLeft");
+    if (!animatedSprite) {
+        cerr << "Cant create animated sprite: " << "DefaultAnimatedSprite" << endl;
         return;
     }
+    vector<pair<string, uint64_t> > characterState;
+
+    for (auto sub_texture_name: subTextureNames) {
+        characterState.emplace_back(make_pair<string, uint64_t>(std::move(sub_texture_name), 165000000));
+    }
+
+    animatedSprite->insertState("characterState", characterState);
+    animatedSprite->setState("characterState");
+
 
     glm::vec2 screenCenter = windowSize * 0.5f;
-    glm::vec2 halfSprite  = glm::vec2(windowSize.x/8, windowSize.y/4) * 0.5f;
+    glm::vec2 halfSprite = glm::vec2(windowSize.x / 8, windowSize.y / 4) * 0.5f;
 
     glm::vec2 pos = screenCenter - halfSprite;
-    sprite->setPosition(pos);
+    animatedSprite->setPosition(pos);
 
     glm::mat4 projectionMatrix = glm::ortho(0.f, windowSize.x, 0.f,
                                             windowSize.y, -100.f, 100.f);
 
     spriteShaderProgram->use();
-    spriteShaderProgram->setMatrix4("projectionMat", projectionMatrix);
     spriteShaderProgram->setInt("tex", 0);
+    spriteShaderProgram->setMatrix4("projectionMat", projectionMatrix);
+
+    auto lastTime = std::chrono::high_resolution_clock::now();
 
     while (!glfwWindowShouldClose(window)) {
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        uint64_t duration = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime - lastTime).count();
+        lastTime = currentTime;
+        animatedSprite->update(duration);
+
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-        sprite->render();
+        animatedSprite->render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

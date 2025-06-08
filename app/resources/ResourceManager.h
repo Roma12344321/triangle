@@ -5,15 +5,15 @@
 #include <string>
 #include <vector>
 
+#include "../render/AnimatedSprite.h"
 #include "../render/ShaderProgram.h"
 #include "../render/Sprite.h"
 #include "../render/Texture2D.h"
 
-using namespace std;
 
 class ResourceManager {
 public:
-    ResourceManager(const string &executablePath);
+    ResourceManager(const std::string &executablePath);
 
     ~ResourceManager();
 
@@ -25,44 +25,58 @@ public:
 
     ResourceManager(ResourceManager &&) = delete;
 
-    ShaderProgram *loadShaders(const string &shaderName, const string &vertexPath, const string &fragmentPath);
+    ShaderProgram *loadShaders(const std::string &shaderName, const std::string &vertexPath,
+                               const std::string &fragmentPath);
 
-    ShaderProgram *getShaderProgram(const string &shaderName);
+    ShaderProgram *getShaderProgram(const std::string &shaderName);
 
-    Texture2D *loadTexture(const string &textureName, const string &texturePath);
+    Texture2D *loadTexture(const std::string &textureName, const std::string &texturePath);
 
-    Texture2D *getTexture(const string &textureName);
+    Texture2D *getTexture(const std::string &textureName);
 
 
-    Sprite *loadSprite(const string &spriteName,
-                       const string &textureName,
-                       const string &shaderName,
+    Sprite *loadSprite(const std::string &spriteName,
+                       const std::string &textureName,
+                       const std::string &shaderName,
                        const unsigned int spriteWidth,
                        const unsigned int spriteHeight,
-                       const string &subTextureName);
+                       const std::string &subTextureName);
 
-    Sprite *getSprite(const string &spriteName);
+    Sprite *getSprite(const std::string &spriteName);
+
+    AnimatedSprite *loadAnimatedSprite(
+        const std::string &spriteName,
+        const std::string &textureName,
+        const std::string &shaderName,
+        const unsigned int spriteWidth,
+        const unsigned int spriteHeight,
+        const std::string &subTextureName);
+
+    AnimatedSprite *getAnimatedSprite(const std::string &spriteName);
 
     Texture2D *loadTextureAtlas(
-        const string &textureName,
-        const string &texturePath,
-        vector<string> subTextures,
+        const std::string &textureName,
+        const std::string &texturePath,
+        std::vector<std::string> subTextures,
         const unsigned int subTextureWidth,
         const unsigned int subTextureHeight);
 
 private:
-    string getFileString(const string &filePath) const;
+    std::string getFileString(const std::string &filePath) const;
 
-    typedef map<const string, ShaderProgram *> ShaderProgramMap;
+    typedef std::map<const std::string, ShaderProgram *> ShaderProgramMap;
     ShaderProgramMap shaderPrograms;
 
-    typedef map<const string, Texture2D *> TexturesMap;
+    typedef std::map<const std::string, Texture2D *> TexturesMap;
     TexturesMap textures;
 
-    typedef map<const string, Sprite *> SpritesMap;
+    typedef std::map<const std::string, Sprite *> SpritesMap;
     SpritesMap sprites;
 
-    string path;
+    typedef std::map<const std::string, AnimatedSprite *> AnimatedSpritesMap;
+    AnimatedSpritesMap animatedSprites;
+
+    std::string path;
 };
 
 

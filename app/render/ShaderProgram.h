@@ -5,12 +5,10 @@
 #include "../../glad/gl.h"
 #include "../../glm/ext/matrix_float4x4.hpp"
 
-using namespace std;
-
 
 class ShaderProgram {
 public:
-    ShaderProgram(const string &vertexShader, const string &fragmentShader);
+    ShaderProgram(const std::string &vertexShader, const std::string &fragmentShader);
 
     ~ShaderProgram();
 
@@ -28,15 +26,15 @@ public:
 
     void use() const;
 
-    void setInt(const string &name, const GLint value);
+    void setInt(const std::string &name, const GLint value);
 
-    void setMatrix4(const string &name, const glm::mat4& matrix);
+    void setMatrix4(const std::string &name, const glm::mat4& matrix);
 
 private:
     bool compiled = false;
     GLuint id = 0;
 
-    bool createShader(const string &source, const GLenum shaderType, GLuint &shaderID);
+    bool createShader(const std::string &source, const GLenum shaderType, GLuint &shaderID);
 };
 
 

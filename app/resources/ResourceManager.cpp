@@ -9,6 +9,8 @@
 
 #include "stb_image.h"
 
+using namespace std;
+
 ResourceManager::ResourceManager(const string &executablePath) {
     size_t found = executablePath.find_last_of("/\\");
     path = executablePath.substr(0, found);
@@ -25,6 +27,10 @@ ResourceManager::~ResourceManager() {
 
     for (auto sprite: sprites) {
         delete sprite.second;
+    }
+
+    for (auto animatedSprite: animatedSprites) {
+        delete animatedSprite.second;
     }
 }
 
@@ -106,21 +112,21 @@ Sprite *ResourceManager::loadSprite(
     const string &shaderName,
     const unsigned int spriteWidth,
     const unsigned int spriteHeight,
-    const string& subTextureName) {
+    const string &subTextureName) {
     auto texture = getTexture(textureName);
     if (!texture) {
-        cerr << "No texture " << textureName << "for sprite" << endl;
+        cerr << "No texture " << textureName << "for sprite" << spriteName << endl;
         return nullptr;
     }
 
     auto shader = getShaderProgram(shaderName);
     if (!shader) {
-        cerr << "No shader " << textureName << "for sprite" << endl;
+        cerr << "No shader " << shaderName << "for sprite" << spriteName << endl;
         return nullptr;
     }
 
     auto newSprite = new Sprite(
-        texture,subTextureName,
+        texture, subTextureName,
         shader,
         glm::vec2(0.f, 0.f),
         glm::vec2(spriteWidth, spriteHeight),
@@ -141,6 +147,49 @@ Sprite *ResourceManager::getSprite(const string &spriteName) {
     return iterator->second;
 }
 
+AnimatedSprite *ResourceManager::loadAnimatedSprite(
+    const std::string &spriteName,
+    const std::string &textureName,
+    const std::string &shaderName,
+    const unsigned int spriteWidth,
+    const unsigned int spriteHeight,
+    const std::string &subTextureName
+) {
+    auto texture = getTexture(textureName);
+    if (!texture) {
+        cerr << "No texture " << textureName << "for animated sprite" << spriteName << endl;
+        return nullptr;
+    }
+
+    auto shader = getShaderProgram(shaderName);
+    if (!shader) {
+        cerr << "No shader " << shaderName << "for animated sprite" << spriteName << endl;
+        return nullptr;
+    }
+
+    auto newSprite = new AnimatedSprite(
+        texture,
+        subTextureName,
+        shader,
+        glm::vec2(0.f, 0.f),
+        glm::vec2(spriteWidth, spriteHeight),
+        0.f);
+    animatedSprites.emplace(spriteName, newSprite);
+
+
+    return newSprite;
+}
+
+AnimatedSprite *ResourceManager::getAnimatedSprite(const std::string &spriteName) {
+    auto iterator = animatedSprites.find(spriteName);
+    if (iterator == animatedSprites.end()) {
+        cerr << "No animated sprite " << spriteName << " found" << endl;
+        return nullptr;
+    }
+
+    return iterator->second;
+}
+
 Texture2D *ResourceManager::loadTextureAtlas(
     const string &textureName,
     const string &texturePath,
@@ -148,7 +197,7 @@ Texture2D *ResourceManager::loadTextureAtlas(
     const unsigned int subTextureWidth,
     const unsigned int subTextureHeight
 ) {
-    auto texture = loadTexture(textureName,texturePath);
+    auto texture = loadTexture(textureName, texturePath);
     if (!texture) {
         return texture;
     }
@@ -160,9 +209,11 @@ Texture2D *ResourceManager::loadTextureAtlas(
     unsigned int currentTextureOffsetY = textureHeight;
 
     for (auto subTextureName: subTextures) {
-        glm::vec2 leftBottomUV(static_cast<float>(currentTextureOffsetX) / textureWidth,static_cast<float>(currentTextureOffsetY-subTextureHeight) / textureHeight);
-        glm::vec2 rightTopUV(static_cast<float>(currentTextureOffsetX+subTextureWidth) / textureWidth,static_cast<float>(currentTextureOffsetY) / textureHeight);
-        texture -> addSubTexture(subTextureName, leftBottomUV, rightTopUV);
+        glm::vec2 leftBottomUV(static_cast<float>(currentTextureOffsetX) / textureWidth,
+                               static_cast<float>(currentTextureOffsetY - subTextureHeight) / textureHeight);
+        glm::vec2 rightTopUV(static_cast<float>(currentTextureOffsetX + subTextureWidth) / textureWidth,
+                             static_cast<float>(currentTextureOffsetY) / textureHeight);
+        texture->addSubTexture(subTextureName, leftBottomUV, rightTopUV);
 
 
         currentTextureOffsetX += subTextureWidth;
@@ -173,7 +224,6 @@ Texture2D *ResourceManager::loadTextureAtlas(
     }
 
     return texture;
-
 }
 
 string ResourceManager::getFileString(const string &filePath) const {
