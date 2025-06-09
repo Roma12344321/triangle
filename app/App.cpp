@@ -74,8 +74,12 @@ void App::run() const {
         "bottomRight"
     };
 
-    auto textureAtlas = resourceManager->loadTextureAtlas("DefaultTextureAtlas", "res/textures/character.png",
-                                                          subTextureNames, 384 / 3, 384 / 3);
+    auto textureAtlas = resourceManager->loadTextureAtlas(
+        "DefaultTextureAtlas",
+        "res/textures/character.png",
+        subTextureNames,
+        384 / 3,
+        384 / 3);
 
     if (!textureAtlas) {
         cerr << "Cant create texture atlas: " << "DefaultTextureAtlas" << endl;
@@ -83,18 +87,22 @@ void App::run() const {
         return;
     }
 
-
-    auto animatedSprite = resourceManager->loadAnimatedSprite("DefaultAnimatedSprite", "DefaultTextureAtlas",
-                                                              "SpriteShader", windowSize.x / 8, windowSize.y / 4,
-                                                              "topLeft");
+    auto animatedSprite = resourceManager->loadAnimatedSprite(
+        "DefaultAnimatedSprite",
+        "DefaultTextureAtlas",
+        "SpriteShader",
+        windowSize.x
+        / 8, windowSize.y / 4,
+        "topLeft");
     if (!animatedSprite) {
         cerr << "Cant create animated sprite: " << "DefaultAnimatedSprite" << endl;
         return;
     }
+
     vector<pair<string, uint64_t> > characterState;
 
-    for (auto sub_texture_name: subTextureNames) {
-        characterState.emplace_back(make_pair<string, uint64_t>(std::move(sub_texture_name), 165000000));
+    for (auto subTextureName: subTextureNames) {
+        characterState.emplace_back(make_pair<string, uint64_t>(move(subTextureName), 165000000));
     }
 
     animatedSprite->insertState("characterState", characterState);
@@ -110,21 +118,62 @@ void App::run() const {
     glm::mat4 projectionMatrix = glm::ortho(0.f, windowSize.x, 0.f,
                                             windowSize.y, -100.f, 100.f);
 
+    vector<string> subTextureBackgroundNames;
+
+    for (int i = 1; i <= 24; ++i) {
+        subTextureBackgroundNames.push_back(to_string(i));
+    }
+
+    auto backgroundAtlas = resourceManager->loadTextureAtlas(
+        "BackgroundAtlas",
+        "res/textures/background.png",
+        subTextureBackgroundNames,
+        640/5,
+        640/5);
+    if (!backgroundAtlas) {
+        cerr << "Cant create texture atlas: " << "BackgroundAtlas" << endl;
+        return;
+    }
+
+    auto backgroundAnimatedSprite = resourceManager->loadAnimatedSprite(
+        "BackgroundAnimatedSprite",
+        "BackgroundAtlas",
+        "SpriteShader",
+        windowSize.x, windowSize.y,
+        subTextureBackgroundNames[0]);
+    if (!backgroundAnimatedSprite) {
+        cerr << "Cant create animated sprite: " << "BackgroundAnimatedSprite" << endl;
+        return;
+    }
+
+    vector<pair<string, uint64_t> > backgroundStates;
+
+    for (int i = 0; i < subTextureBackgroundNames.size()-1; ++i) {
+        backgroundStates.emplace_back(make_pair<string, uint64_t>(move(subTextureBackgroundNames[i]), 100000000));
+    }
+
+    backgroundStates.emplace_back(make_pair<string, uint64_t>(move(subTextureBackgroundNames[subTextureBackgroundNames.size()-1]), 500000000));
+
+    backgroundAnimatedSprite->insertState("backgroundState", backgroundStates);
+    backgroundAnimatedSprite->setState("backgroundState");
+
     spriteShaderProgram->use();
     spriteShaderProgram->setInt("tex", 0);
     spriteShaderProgram->setMatrix4("projectionMat", projectionMatrix);
 
-    auto lastTime = std::chrono::high_resolution_clock::now();
+    auto lastTime = chrono::high_resolution_clock::now();
 
     while (!glfwWindowShouldClose(window)) {
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        uint64_t duration = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime - lastTime).count();
+        auto currentTime = chrono::high_resolution_clock::now();
+        uint64_t duration = chrono::duration_cast<chrono::nanoseconds>(currentTime - lastTime).count();
         lastTime = currentTime;
+
         animatedSprite->update(duration);
+        backgroundAnimatedSprite->update(duration);
 
         glClear(GL_COLOR_BUFFER_BIT);
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
+        backgroundAnimatedSprite->render();
         animatedSprite->render();
 
         glfwSwapBuffers(window);
